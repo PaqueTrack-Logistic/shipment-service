@@ -1,17 +1,18 @@
 package com.paquetrack.shipment.infrastructure.controller;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
@@ -40,11 +41,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    // Recursos estáticos no encontrados (favicon.ico, etc.) — ignorar
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFound(
+            NoResourceFoundException ex,
+            HttpServletRequest request) {
+
+        log.debug("Recurso estático no encontrado: {}", request.getRequestURI());
+        return ResponseEntity.notFound().build();
+    }
+
     // Error genérico — cualquier excepción no manejada
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericError(Exception ex) {
+    public ResponseEntity<Map<String, Object>> handleGenericError(
+            Exception ex,
+            HttpServletRequest request) {
 
-        log.error("Error inesperado: {}", ex.getMessage(), ex);
+        // Ignorar errores de recursos estáticos
+        if (request.getRequestURI().contains("favicon")) {
+            return ResponseEntity.notFound().build();
+        }
+
+        log.error("Error inesperado en {}: {}", request.getRequestURI(), ex.getMessage(), ex);
 
         Map<String, Object> response = new HashMap<>();
         response.put("timestamp", LocalDateTime.now().toString());

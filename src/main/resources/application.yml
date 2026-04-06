@@ -34,6 +34,15 @@ spring:
       simple:
         default-requeue-rejected: false
 
+  springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    
 server:
   port: 8081
 
