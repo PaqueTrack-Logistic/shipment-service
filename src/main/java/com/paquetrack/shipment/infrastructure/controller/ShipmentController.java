@@ -18,6 +18,13 @@ import com.paquetrack.shipment.infrastructure.dto.ShipmentRequestDTO;
 import com.paquetrack.shipment.infrastructure.dto.ShipmentResponseDTO;
 import com.paquetrack.shipment.infrastructure.persistence.mapper.ShipmentMapper;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/shipments")
 @RequiredArgsConstructor
+@Tag(name = "Shipments", description = "Operaciones para crear y consultar envios")
 public class ShipmentController {
 
     private final CreateShipmentUseCase createShipmentUseCase;
@@ -34,6 +42,11 @@ public class ShipmentController {
     private final ShipmentMapper shipmentMapper;
 
     @PostMapping
+    @Operation(summary = "Crear envio", description = "Registra un nuevo envio y genera trackingId")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Envio creado", content = @Content(schema = @Schema(implementation = ShipmentResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Datos invalidos")
+    })
     public ResponseEntity<ShipmentResponseDTO> createShipment(
             @Valid @RequestBody ShipmentRequestDTO requestDTO) {
 
@@ -50,7 +63,13 @@ public class ShipmentController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Consultar envio por id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Envio encontrado", content = @Content(schema = @Schema(implementation = ShipmentResponseDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Envio no encontrado")
+    })
     public ResponseEntity<ShipmentResponseDTO> getShipment(
+            @Parameter(description = "ID unico del envio", example = "4ff2a911-5a9e-4fd9-8f84-d9f6f020f66f")
             @PathVariable String id) {
 
         log.info("Consultando envío por id: {}", id);
@@ -62,7 +81,13 @@ public class ShipmentController {
     }
 
     @GetMapping("/tracking/{trackingId}")
+    @Operation(summary = "Consultar envio por trackingId")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Envio encontrado", content = @Content(schema = @Schema(implementation = ShipmentResponseDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Envio no encontrado")
+    })
     public ResponseEntity<ShipmentResponseDTO> getShipmentByTrackingId(
+            @Parameter(description = "TrackingId del envio", example = "PQ-20260406-ABC123")
             @PathVariable String trackingId) {
 
         log.info("Consultando envío por trackingId: {}", trackingId);
