@@ -6,6 +6,8 @@ target/
 *.jar
 *.war
 *.ear
+README.md
+
 
 # =========================
 # Logs and temp files
@@ -50,6 +52,9 @@ Thumbs.db
 # Docker/dev-local overrides
 # =========================
 docker-compose.override.yml
+application-dev.yml
+docker-compose.yml
+
 
 # =========================
 # Test and coverage outputs

@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/paquetrack_shipment}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: jdbc:postgresql://dpg-d7abnaeuk2gs73cbbbi0-a.oregon-postgres.render.com/paquetrack_shipment_db
+    username: paquetrack_shipment_db_user
+    password: 2mdsDBX6vRHC2c7SxT2MhPjKni6dH5aQ
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -23,7 +23,7 @@ spring:
     host: ${RABBITMQ_HOST:shrimp.rmq.cloudamqp.com}
     port: ${RABBITMQ_PORT:5671}
     username: ${RABBITMQ_USERNAME:edjhxutz}
-    password: ${RABBITMQ_PASSWORD:}
+    password: ${RABBITMQ_PASSWORD:ZFLZoeGFGN2Xh73jXifehAZP31gkyBt7}
     virtual-host: ${RABBITMQ_VHOST:edjhxutz}
     ssl:
       enabled: ${RABBITMQ_SSL_ENABLED:true}

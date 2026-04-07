@@ -35,7 +35,7 @@ services:
       - key: SPRING_RABBITMQ_SSL_ENABLED
         value: "true"
     
-    healthCheckPath: /actuator/health
+    healthCheckPath: /actuator/health/liveness
     dockerfile: Dockerfile
     dockerContext: ./
     scaling:
