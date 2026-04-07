@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,6 +53,21 @@ public class GlobalExceptionHandler {
         response.put("path", ex.getRequestURL());
 
         log.debug("Recurso no encontrado: {}", ex.getRequestURL());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    // Manejo de recursos estaticos no encontrados (ej. GET / o /favicon.ico)
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFound(NoResourceFoundException ex) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("status", HttpStatus.NOT_FOUND.value());
+        response.put("error", "Recurso no encontrado");
+        response.put("path", ex.getResourcePath());
+
+        log.debug("Recurso estatico no encontrado: {}", ex.getResourcePath());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
