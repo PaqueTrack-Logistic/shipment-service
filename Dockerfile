@@ -40,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 EXPOSE 10000
 
 # Run the application
-ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-10000}"]
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-10000}  --spring.profiles.active=${SPRING_PROFILES_ACTIVE:-dev}"]
