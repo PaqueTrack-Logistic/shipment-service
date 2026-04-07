@@ -7,7 +7,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
 
   flyway:
     enabled: false
+
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: false
