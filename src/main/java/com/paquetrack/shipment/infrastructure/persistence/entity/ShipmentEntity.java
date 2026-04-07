@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "shipments", indexes = {
-        @Index(name = "idx_shipments_tracking_id", columnList = "trackingId"),
+    @Index(name = "idx_shipments_tracking_id", columnList = "tracking_id"),
         @Index(name = "idx_shipments_status", columnList = "status")
 })
 @Data
@@ -29,36 +29,36 @@ public class ShipmentEntity {
     @Column(length = 36)
     private String id;
 
-    @Column(unique = true, nullable = false, length = 30)
+    @Column(name = "tracking_id", unique = true, nullable = false, length = 30)
     private String trackingId;
 
     @Column(nullable = false, length = 30)
     private String status;
 
-    @Column(nullable = false, length = 200)
+    @Column(name = "sender_name", nullable = false, length = 200)
     private String senderName;
 
-    @Column(length = 300)
+    @Column(name = "sender_address", length = 300)
     private String senderAddress;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "sender_city", nullable = false, length = 100)
     private String senderCity;
 
-    @Column(nullable = false, length = 200)
+    @Column(name = "recipient_name", nullable = false, length = 200)
     private String recipientName;
 
-    @Column(length = 300)
+    @Column(name = "recipient_address", length = 300)
     private String recipientAddress;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "recipient_city", nullable = false, length = 100)
     private String recipientCity;
 
-
+    @Column(name = "weight_kg")
     private BigDecimal weightKg;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }

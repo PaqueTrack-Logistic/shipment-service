@@ -1,0 +1,63 @@
+# =========================
+# Build artifacts (Maven/Java)
+# =========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+README.md
+
+
+# =========================
+# Logs and temp files
+# =========================
+*.log
+logs/
+*.tmp
+*.swp
+*.swo
+*~
+
+# =========================
+# OS-generated files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE/editor local files
+# =========================
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# =========================
+# Environment/secrets
+# =========================
+.env
+.env.*
+!.env.example
+*.local
+
+# =========================
+# Spring Boot runtime files
+# =========================
+*.pid
+
+# =========================
+# Docker/dev-local overrides
+# =========================
+docker-compose.override.yml
+application-dev.yml
+docker-compose.yml
+
+
+# =========================
+# Test and coverage outputs
+# =========================
+coverage/
+site/
