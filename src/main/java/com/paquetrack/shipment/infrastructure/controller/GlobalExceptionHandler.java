@@ -41,6 +41,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+public ResponseEntity<Map<String, Object>> handleNoResourceFound(
+        NoResourceFoundException ex) {
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("timestamp", LocalDateTime.now().toString());
+    response.put("status", 404);
+    response.put("error", "Recurso no encontrado");
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+}
+    
     // Manejo de recursos no encontrados
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoHandlerFound(NoHandlerFoundException ex) {
