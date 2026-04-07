@@ -1,24 +1,25 @@
-package com.paquetrack.shipment.infrastructure.controller;
+package com.paquetrack.shipment.config;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Errores de validación (@NotBlank, @Positive, etc.)
+    // ============================
+    // VALIDACIONES (400)
+    // ============================
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(
             MethodArgumentNotValidException ex) {
@@ -41,38 +42,29 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    // ============================
+    // 404 - RUTA O RECURSO NO EXISTE
+    // ============================
     @ExceptionHandler(NoResourceFoundException.class)
-public ResponseEntity<Map<String, Object>> handleNoResourceFound(
-        NoResourceFoundException ex) {
-
-    Map<String, Object> response = new HashMap<>();
-    response.put("timestamp", LocalDateTime.now().toString());
-    response.put("status", 404);
-    response.put("error", "Recurso no encontrado");
-
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-}
-    
-    // Manejo de recursos no encontrados
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNoHandlerFound(NoHandlerFoundException ex) {
+    public ResponseEntity<Map<String, Object>> handleNoResourceFound(
+            NoResourceFoundException ex) {
 
         Map<String, Object> response = new HashMap<>();
         response.put("timestamp", LocalDateTime.now().toString());
         response.put("status", HttpStatus.NOT_FOUND.value());
         response.put("error", "Recurso no encontrado");
-        response.put("path", ex.getRequestURL());
-
-        log.debug("Recurso no encontrado: {}", ex.getRequestURL());
+        response.put("path", ex.getResourcePath());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    // Error genérico — cualquier excepción no manejada
+    // ============================
+    // ERROR REAL (500)
+    // ============================
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericError(Exception ex) {
 
-        log.error("Error inesperado: {}", ex.getMessage(), ex);
+        log.error("Error inesperado", ex);
 
         Map<String, Object> response = new HashMap<>();
         response.put("timestamp", LocalDateTime.now().toString());
