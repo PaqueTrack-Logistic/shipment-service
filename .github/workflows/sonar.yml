@@ -25,7 +25,7 @@ jobs:
 
       - name: Build, test and analyze
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_SHIPMENT }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SPRING_PROFILES_ACTIVE: test
         run: |
           mvn verify sonar:sonar \
