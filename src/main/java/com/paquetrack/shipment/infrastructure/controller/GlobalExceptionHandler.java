@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,6 +39,21 @@ public class GlobalExceptionHandler {
         log.warn("Error de validación: {}", errors);
 
         return ResponseEntity.badRequest().body(response);
+    }
+
+    // Manejo de recursos no encontrados
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoHandlerFound(NoHandlerFoundException ex) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("status", HttpStatus.NOT_FOUND.value());
+        response.put("error", "Recurso no encontrado");
+        response.put("path", ex.getRequestURL());
+
+        log.debug("Recurso no encontrado: {}", ex.getRequestURL());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     // Error genérico — cualquier excepción no manejada
