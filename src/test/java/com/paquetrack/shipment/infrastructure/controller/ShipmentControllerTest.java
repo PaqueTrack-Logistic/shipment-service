@@ -1,6 +1,5 @@
 package com.paquetrack.shipment.infrastructure.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paquetrack.shipment.domain.model.Shipment;
 import com.paquetrack.shipment.domain.port.in.CreateShipmentUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentByTrackingUseCase;
@@ -23,12 +22,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class ShipmentControllerTest {

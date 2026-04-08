@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ShipmentRepositoryAdapterTest {
@@ -94,8 +94,9 @@ class ShipmentRepositoryAdapterTest {
 
         Optional<Shipment> result = adapter.findById("id-1");
 
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(domain);
+        assertThat(result)
+                .isPresent()
+                .contains(domain);
         verify(jpaShipmentRepository).findById("id-1");
     }
 
@@ -120,8 +121,9 @@ class ShipmentRepositoryAdapterTest {
 
         Optional<Shipment> result = adapter.findByTrackingId("PQ-20260407-ABC123");
 
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(domain);
+        assertThat(result)
+                .isPresent()
+                .contains(domain);
         verify(jpaShipmentRepository).findByTrackingId("PQ-20260407-ABC123");
     }
 
