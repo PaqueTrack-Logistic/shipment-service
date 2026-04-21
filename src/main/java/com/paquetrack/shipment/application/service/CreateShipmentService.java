@@ -12,16 +12,29 @@ import com.paquetrack.shipment.domain.port.out.ShipmentEventPublisherPort;
 import com.paquetrack.shipment.domain.port.out.ShipmentRepositoryPort;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CreateShipmentService implements CreateShipmentUseCase {
 
     private final ShipmentRepositoryPort repository;
-    private final ShipmentEventPublisherPort publisher;  // ← nuevo
+    private final ShipmentEventPublisherPort publisher;
 
     @Override
     @Transactional
     public Shipment createShipment(Shipment shipment) {
+
+        // Validar que el shipment tenga el creador y rol
+        if (shipment.getCreatedBy() == null || shipment.getCreatedByRole() == null) {
+            log.error("Intento de crear envío sin datos de auditoría");
+            throw new IllegalStateException("Shipment debe tener createdBy y createdByRole");
+        }
+
+        log.info("Creando envío para remitente: {} por usuario: {} con rol: {}",
+                shipment.getSenderName(),
+                shipment.getCreatedBy(),
+                shipment.getCreatedByRole());
 
         // 1. Construir con id y trackingId generados
         Shipment toSave = shipment.toBuilder()
@@ -29,11 +42,13 @@ public class CreateShipmentService implements CreateShipmentUseCase {
                 .trackingId(generateTrackingNumber())
                 .build();
 
-        // 2. Aplicar lógica de dominio
+        // 2. Aplicar lógica de dominio (marca como creado)
         Shipment ready = toSave.markAsCreated();
 
         // 3. Persistir
         Shipment saved = repository.save(ready);
+
+        log.info("Envío guardado con trackingId: {} por {}", saved.getTrackingId(), saved.getCreatedBy());
 
         // 4. Publicar evento a RabbitMQ
         publisher.publishShipmentCreated(saved);

@@ -36,3 +36,7 @@ COMMENT ON TABLE shipments IS 'Tabla de envíos - PaqueTrack';
 COMMENT ON COLUMN shipments.tracking_id IS 'Número de guía formato PQ-YYYYMMDD-XXXXXX';
 COMMENT ON COLUMN shipments.status IS 'Estado: CREATED, IN_TRANSIT, DELIVERED, CANCELLED';
 
+/*Columnas para auditoría*/
+ALTER TABLE shipment
+ADD COLUMN created_by VARCHAR(255),
+ADD COLUMN created_by_role VARCHAR(100);
