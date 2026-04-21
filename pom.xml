@@ -20,7 +20,7 @@
 
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>22</java.version>
         <sonar.organization>TU_ORG_KEY</sonar.organization>
         <sonar.projectKey>TU_PROJECT_KEY</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
