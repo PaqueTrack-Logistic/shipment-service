@@ -1,4 +1,3 @@
-// infrastructure/config/JwtProperties.java - Versión con @Value
 package com.paquetrack.shipment.infrastructure.config;
 
 import org.springframework.beans.factory.annotation.Value;
