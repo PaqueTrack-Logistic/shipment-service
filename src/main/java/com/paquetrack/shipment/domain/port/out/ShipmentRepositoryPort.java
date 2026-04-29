@@ -1,5 +1,6 @@
 package com.paquetrack.shipment.domain.port.out;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.paquetrack.shipment.domain.model.Shipment;
@@ -10,4 +11,8 @@ public interface ShipmentRepositoryPort {
     Optional<Shipment> findById(String id);
 
     Optional<Shipment> findByTrackingId(String trackingId);
+
+    List<Shipment> findBySenderNameContaining(String senderName);
+    
+    List<Shipment> findByRecipientNameContaining(String recipientName);
 }

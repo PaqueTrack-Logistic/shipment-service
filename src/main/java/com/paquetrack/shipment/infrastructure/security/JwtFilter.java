@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paquetrack.shipment.domain.model.AuthenticatedUser;
 import com.paquetrack.shipment.domain.port.out.JwtPort;
 import com.paquetrack.shipment.infrastructure.dto.ErrorResponseDTO;
@@ -24,7 +25,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -69,13 +69,11 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String authHeader = request.getHeader("Authorization");
 
-        
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        
         if (isProtectedPath(path) && (authHeader == null || !authHeader.startsWith("Bearer "))) {
             sendErrorResponse(response, HttpStatus.UNAUTHORIZED,
                     "AUTHENTICATION_REQUIRED",
@@ -85,7 +83,6 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             sendErrorResponse(response, HttpStatus.UNAUTHORIZED,
                     "AUTHENTICATION_REQUIRED",

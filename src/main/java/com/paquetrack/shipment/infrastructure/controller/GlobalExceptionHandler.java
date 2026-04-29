@@ -19,6 +19,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.paquetrack.shipment.domain.exception.InvalidSearchParameterException;
 import com.paquetrack.shipment.domain.exception.ShipmentNotFoundException;
 import com.paquetrack.shipment.infrastructure.dto.ErrorResponseDTO;
 
@@ -147,7 +148,8 @@ public class GlobalExceptionHandler {
         return response;
     }
 
-    // ──────────────────Handles Token────────────────────────────────────────────────────
+    // ──────────────────Handles
+    // Token────────────────────────────────────────────────────
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<ErrorResponseDTO> handleExpiredJwtException(
             ExpiredJwtException ex, WebRequest request) {
@@ -248,6 +250,20 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 "Verifique los parámetros enviados");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    // 400 — parámetros de búsqueda inválidos
+    @ExceptionHandler(InvalidSearchParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidSearchParameter(
+            InvalidSearchParameterException ex,
+            HttpServletRequest request) {
+
+        log.warn("Parámetro de búsqueda inválido en {}: {}", request.getRequestURI(), ex.getMessage());
+
+        Map<String, Object> response = buildResponse(HttpStatus.BAD_REQUEST, "Parámetro de búsqueda inválido", request);
+        response.put(MESSAGE, ex.getMessage());
+
+        return ResponseEntity.badRequest().body(response);
     }
 
 }

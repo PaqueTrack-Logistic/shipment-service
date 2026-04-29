@@ -1,6 +1,8 @@
 package com.paquetrack.shipment.infrastructure.controller;
 
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -9,14 +11,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.paquetrack.shipment.domain.exception.InvalidSearchParameterException;
 import com.paquetrack.shipment.domain.exception.ShipmentNotFoundException;
 import com.paquetrack.shipment.domain.model.AuthenticatedUser;
 import com.paquetrack.shipment.domain.model.Shipment;
 import com.paquetrack.shipment.domain.port.in.CreateShipmentUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentByTrackingUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentUseCase;
+import com.paquetrack.shipment.domain.port.in.GetShipmentsByFilterUseCase;
+import com.paquetrack.shipment.domain.port.out.ShipmentEventHistoryPort;
+import com.paquetrack.shipment.infrastructure.dto.ShipmentEventHistoryResponseDTO;
 import com.paquetrack.shipment.infrastructure.dto.ShipmentRequestDTO;
 import com.paquetrack.shipment.infrastructure.dto.ShipmentResponseDTO;
 import com.paquetrack.shipment.infrastructure.persistence.mapper.ShipmentMapper;
@@ -45,6 +52,8 @@ public class ShipmentController {
         private final GetShipmentUseCase getShipmentUseCase;
         private final GetShipmentByTrackingUseCase getShipmentByTrackingUseCase;
         private final ShipmentMapper shipmentMapper;
+        private final ShipmentEventHistoryPort shipmentEventHistoryPort;
+        private final GetShipmentsByFilterUseCase getShipmentsByFilterUseCase;
 
         @PostMapping
         @Operation(summary = "Crear envio", description = "Registra un nuevo envio y genera trackingId. Requiere roles: ADMIN u OPERADOR")
@@ -118,5 +127,74 @@ public class ShipmentController {
                                 .map(shipmentMapper::toResponseDTO)
                                 .map(ResponseEntity::ok)
                                 .orElseThrow(() -> new ShipmentNotFoundException("trackingId", trackingId));
+        }
+
+        @GetMapping("/{id}/history")
+        @Operation(summary = "Historial de eventos del envío", description = "Retorna todos los eventos de tracking recibidos para un envío")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Historial encontrado"),
+                        @ApiResponse(responseCode = "404", description = "Envío no encontrado"),
+                        @ApiResponse(responseCode = "401", description = "No autenticado")
+        })
+        public ResponseEntity<List<ShipmentEventHistoryResponseDTO>> getShipmentHistory(
+                        @Parameter(description = "ID del envío", required = true) @PathVariable String id,
+                        @AuthenticationPrincipal AuthenticatedUser usuarioAutenticado) {
+
+                log.info("Usuario {} consultando historial del envío: {}",
+                                usuarioAutenticado != null ? usuarioAutenticado.getUsername() : "anónimo", id);
+
+                // Verificar que el envío existe
+                getShipmentUseCase.getShipment(id)
+                                .orElseThrow(() -> new ShipmentNotFoundException("id", id));
+
+                List<ShipmentEventHistoryResponseDTO> history = shipmentEventHistoryPort.findByShipmentId(id);
+
+                return ResponseEntity.ok(history);
+        }
+
+        @GetMapping("/search")
+        @Operation(summary = "Buscar envíos por remitente o destinatario", description = "Búsqueda parcial. Ingrese solo un parámetro a la vez.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Lista de envíos encontrados"),
+                        @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+                        @ApiResponse(responseCode = "401", description = "No autenticado")
+        })
+        public ResponseEntity<List<ShipmentResponseDTO>> searchShipments(
+                        @Parameter(description = "Nombre del remitente ") @RequestParam(required = false) String senderName,
+                        @Parameter(description = "Nombre del destinatario ") @RequestParam(required = false) String recipientName,
+                        @AuthenticationPrincipal AuthenticatedUser usuarioAutenticado) {
+
+                log.info("Usuario {} buscando envíos — senderName: {} | recipientName: {}",
+                                usuarioAutenticado != null ? usuarioAutenticado.getUsername() : "anónimo",
+                                senderName, recipientName);
+
+                // Ambos parámetros presentes - 400
+                if (senderName != null && recipientName != null) {
+                        throw new InvalidSearchParameterException(
+                                        "Solo se permite buscar por remitente O destinatario, no ambos simultáneamente");
+                }
+
+                // Ningún parámetro - 400
+                if (senderName == null && recipientName == null) {
+                        throw new InvalidSearchParameterException(
+                                        "Debe proporcionar al menos un parámetro: senderName o recipientName");
+                }
+
+                List<ShipmentResponseDTO> results;
+
+                if (senderName != null) {
+                        results = getShipmentsByFilterUseCase.getBySenderName(senderName)
+                                        .stream()
+                                        .map(shipmentMapper::toResponseDTO)
+                                        .collect(Collectors.toList());
+                } else {
+                        results = getShipmentsByFilterUseCase.getByRecipientName(recipientName)
+                                        .stream()
+                                        .map(shipmentMapper::toResponseDTO)
+                                        .collect(Collectors.toList());
+                }
+
+                log.info("Búsqueda completada — {} resultados encontrados", results.size());
+                return ResponseEntity.ok(results);
         }
 }

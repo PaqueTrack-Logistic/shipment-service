@@ -1,6 +1,8 @@
 package com.paquetrack.shipment.infrastructure.persistence.adapter;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -40,5 +42,23 @@ public class ShipmentRepositoryAdapter implements ShipmentRepositoryPort {
         log.debug("Buscando envío por trackingId: {}", trackingId);
         return jpaShipmentRepository.findByTrackingId(trackingId)
                 .map(shipmentMapper::toDomain);
+    }
+
+    @Override
+    public List<Shipment> findBySenderNameContaining(String senderName) {
+        return jpaShipmentRepository
+                .findBySenderNameContainingIgnoreCase(senderName)
+                .stream()
+                .map(shipmentMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Shipment> findByRecipientNameContaining(String recipientName) {
+        return jpaShipmentRepository
+                .findByRecipientNameContainingIgnoreCase(recipientName)
+                .stream()
+                .map(shipmentMapper::toDomain)
+                .collect(Collectors.toList());
     }
 }

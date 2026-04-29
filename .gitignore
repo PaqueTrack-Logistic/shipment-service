@@ -8,6 +8,10 @@ target/
 *.ear
 README.md
 
+# Ignorar archivos de configuración local
+application-local.yml
+**/application-local.yml
+
 
 # =========================
 # Logs and temp files
