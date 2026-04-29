@@ -58,7 +58,7 @@ class GlobalExceptionHandlerTest {
                         .content("{\"name\": \"\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.error").value("Datos inválidos"))
                 .andExpect(jsonPath("$.details").isMap())
                 .andExpect(jsonPath("$.details.name").exists());
     }

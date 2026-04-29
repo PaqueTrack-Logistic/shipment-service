@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.paquetrack.shipment.domain.model.Shipment;
@@ -23,7 +24,7 @@ public class CreateShipmentService implements CreateShipmentUseCase {
 
     @Override
     @Transactional
-    public Shipment createShipment(Shipment shipment) {
+    public Shipment createShipment(@NonNull Shipment shipment) {
 
         // Validar que el shipment tenga el creador y rol
         if (shipment.getCreatedBy() == null || shipment.getCreatedByRole() == null) {
