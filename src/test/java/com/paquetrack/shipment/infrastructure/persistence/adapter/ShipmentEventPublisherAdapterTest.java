@@ -1,7 +1,13 @@
 package com.paquetrack.shipment.infrastructure.persistence.adapter;
 
-import com.paquetrack.shipment.domain.model.Shipment;
-import com.paquetrack.shipment.infrastructure.config.RabbitMQConfig;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Map;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,14 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import com.paquetrack.shipment.domain.model.Shipment;
+import com.paquetrack.shipment.infrastructure.config.RabbitMQConfig;
 
 @ExtendWith(MockitoExtension.class)
 class ShipmentEventPublisherAdapterTest {
@@ -55,7 +55,7 @@ class ShipmentEventPublisherAdapterTest {
 
         verify(rabbitTemplate, times(1)).convertAndSend(
                 eq(RabbitMQConfig.EXCHANGE),
-                eq(RabbitMQConfig.ROUTING_KEY),
+                eq(RabbitMQConfig.ROUTING_KEY_CREATED),
                 any(Map.class)
         );
     }
@@ -68,7 +68,7 @@ class ShipmentEventPublisherAdapterTest {
         doThrow(new AmqpException("Connection refused"))
                 .when(rabbitTemplate).convertAndSend(
                         eq(RabbitMQConfig.EXCHANGE),
-                        eq(RabbitMQConfig.ROUTING_KEY),
+                        eq(RabbitMQConfig.ROUTING_KEY_CREATED),
                         any(Map.class)
                 );
 

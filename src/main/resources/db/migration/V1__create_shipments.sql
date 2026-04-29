@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS shipments (
     recipient_city    VARCHAR(100)    NOT NULL,
 
     weight_kg         DECIMAL(8,3),
+    created_by        VARCHAR(255),
+    created_by_role   VARCHAR(100),
     created_at        TIMESTAMP       NOT NULL,
     updated_at        TIMESTAMP       NOT NULL
 );
@@ -35,6 +37,8 @@ CREATE INDEX IF NOT EXISTS idx_shipments_created_at
 COMMENT ON TABLE shipments IS 'Tabla de envíos - PaqueTrack';
 COMMENT ON COLUMN shipments.tracking_id IS 'Número de guía formato PQ-YYYYMMDD-XXXXXX';
 COMMENT ON COLUMN shipments.status IS 'Estado: CREATED, IN_TRANSIT, DELIVERED, CANCELLED';
+COMMENT ON COLUMN shipments.created_by IS 'Email del administrador que creó el envío';
+COMMENT ON COLUMN shipments.created_by_role IS 'Rol del administrador que creó el envío';
 
 /*Columnas para auditoría*/
 ALTER TABLE shipment

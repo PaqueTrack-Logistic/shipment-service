@@ -25,18 +25,16 @@ public class ShipmentEventPublisherAdapter implements ShipmentEventPublisherPort
 
         // Estructura exacta que espera el microservicio de tracking
         Map<String, Object> event = Map.of(
-                "shipmentId",    shipment.getId(),
-                "trackingId",    shipment.getTrackingId(),
-                "senderName",    shipment.getSenderName(),
-                "recipientName", shipment.getRecipientName()
-        );
+                "shipmentId", shipment.getId(),
+                "trackingId", shipment.getTrackingId(),
+                "senderName", shipment.getSenderName(),
+                "recipientName", shipment.getRecipientName());
 
         try {
             rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE,
-                    RabbitMQConfig.ROUTING_KEY,
-                    event
-            );
+                    RabbitMQConfig.ROUTING_KEY_CREATED,
+                    event);
             log.info("Evento publicado a RabbitMQ — trackingId: {} | shipmentId: {}",
                     shipment.getTrackingId(), shipment.getId());
 

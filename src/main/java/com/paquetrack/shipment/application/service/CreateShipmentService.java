@@ -40,6 +40,7 @@ public class CreateShipmentService implements CreateShipmentUseCase {
         Shipment toSave = shipment.toBuilder()
                 .id(UUID.randomUUID().toString())
                 .trackingId(generateTrackingNumber())
+                .createdBy(shipment.getCreatedBy())
                 .build();
 
         // 2. Aplicar lógica de dominio (marca como creado)
