@@ -2,6 +2,7 @@ package com.paquetrack.shipment.infrastructure.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +59,8 @@ public class ShipmentController {
                         @ApiResponse(responseCode = "201", description = "Envio creado", content = @Content(schema = @Schema(implementation = ShipmentResponseDTO.class))),
                         @ApiResponse(responseCode = "400", description = "Datos invalidos")
         })
+
+        @NonNull
         public ResponseEntity<ShipmentResponseDTO> createShipment(
                         @Valid @RequestBody ShipmentRequestDTO requestDTO) {
 
@@ -66,16 +70,17 @@ public class ShipmentController {
                 Shipment shipment = shipmentMapper.toDomain(requestDTO);
 
                 // Usar el método withCreator para asignar el usuario y rol
-                Shipment shipmentWithCreator = shipment.withCreator(
-                                "SYSTEM",
-                                "SYSTEM");
+                Shipment shipmentWithCreator = Objects.requireNonNull(
+                                shipment.withCreator("SYSTEM", "SYSTEM"));
 
                 Shipment created = createShipmentUseCase.createShipment(shipmentWithCreator);
 
                 log.info("Envío creado con trackingId: {} por {}", created.getTrackingId(), created.getCreatedBy());
 
+                URI location = URI.create("/api/shipments/" + created.getId());
+
                 return ResponseEntity
-                                .created(URI.create("/api/shipments/" + created.getId()))
+                                .created(Objects.requireNonNull(location))
                                 .body(shipmentMapper.toResponseDTO(created));
         }
 

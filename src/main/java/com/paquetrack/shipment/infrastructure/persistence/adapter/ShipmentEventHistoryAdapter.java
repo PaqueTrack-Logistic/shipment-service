@@ -23,21 +23,17 @@ public class ShipmentEventHistoryAdapter implements ShipmentEventHistoryPort {
         private final JpaShipmentEventHistoryRepository repository;
 
         @Override
-        public void save(String shipmentId, String previousStatus,
-                        String newStatus, String occurredAt) {
-
-                ShipmentEventHistoryEntity entity = ShipmentEventHistoryEntity.builder()
-                                .id(UUID.randomUUID().toString())
-                                .shipmentId(shipmentId)
-                                .previousStatus(previousStatus)
-                                .newStatus(newStatus)
-                                .occurredAt(occurredAt)
-                                .recordedAt(LocalDateTime.now())
-                                .build();
-
+        public void save(String shipmentId, String previousStatus, String newStatus, String occurredAt) {
+                ShipmentEventHistoryEntity entity = new ShipmentEventHistoryEntity(
+                                UUID.randomUUID().toString(),
+                                shipmentId,
+                                previousStatus,
+                                newStatus,
+                                occurredAt,
+                                LocalDateTime.now());
                 repository.save(entity);
-                log.debug("Evento guardado en historial — shipmentId: {} | {} → {}",
-                                shipmentId, previousStatus, newStatus);
+                log.debug("Evento guardado en historial — shipmentId: {} | {} → {}", shipmentId, previousStatus,
+                                newStatus);
         }
 
         @Override
