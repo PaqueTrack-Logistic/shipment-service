@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.paquetrack.shipment.domain.model.Shipment;
@@ -23,7 +24,7 @@ public class CreateShipmentService implements CreateShipmentUseCase {
 
     @Override
     @Transactional
-    public Shipment createShipment(Shipment shipment) {
+    public @NonNull Shipment createShipment(@NonNull Shipment shipment) {
 
         // Validar que el shipment tenga el creador y rol
         if (shipment.getCreatedBy() == null || shipment.getCreatedByRole() == null) {
@@ -38,16 +39,19 @@ public class CreateShipmentService implements CreateShipmentUseCase {
 
         // 1. Construir con id y trackingId generados
         Shipment toSave = shipment.toBuilder()
-                .id(UUID.randomUUID().toString())
-                .trackingId(generateTrackingNumber())
-                .createdBy(shipment.getCreatedBy())
-                .build();
+            .id(UUID.randomUUID().toString())
+            .trackingId(generateTrackingNumber())
+            .createdBy(shipment.getCreatedBy())
+            .createdByRole(shipment.getCreatedByRole())
+            .build();
 
         // 2. Aplicar lógica de dominio (marca como creado)
         Shipment ready = toSave.markAsCreated();
 
         // 3. Persistir
         Shipment saved = repository.save(ready);
+
+        assert saved != null : "Repository.save() returned null";
 
         log.info("Envío guardado con trackingId: {} por {}", saved.getTrackingId(), saved.getCreatedBy());
 

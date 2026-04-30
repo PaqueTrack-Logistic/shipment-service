@@ -11,6 +11,7 @@ import com.paquetrack.shipment.domain.port.out.ShipmentRepositoryPort;
 import com.paquetrack.shipment.infrastructure.persistence.mapper.ShipmentMapper;
 import com.paquetrack.shipment.infrastructure.persistence.repository.JpaShipmentRepository;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,17 +24,22 @@ public class ShipmentRepositoryAdapter implements ShipmentRepositoryPort {
     private final ShipmentMapper shipmentMapper;
 
     @Override
-    public Shipment save(Shipment shipment) {
+    public @NonNull Shipment save(@NonNull Shipment shipment) {
         log.debug("Guardando envío con trackingId: {}", shipment.getTrackingId());
-        return shipmentMapper.toDomain(
-                jpaShipmentRepository.save(
-                        shipmentMapper.toEntity(shipment)));
+
+        return Optional.of(shipment)
+                .map(shipmentMapper::toEntity)
+                .map(jpaShipmentRepository::save)
+                .map(shipmentMapper::toDomain)
+                .orElseThrow();
     }
 
     @Override
-    public Optional<Shipment> findById(String id) {
+    public Optional<Shipment> findById(@NonNull String id) {
         log.debug("Buscando envío por id: {}", id);
-        return jpaShipmentRepository.findById(id)
+
+        return Optional.of(id)
+                .flatMap(jpaShipmentRepository::findById)
                 .map(shipmentMapper::toDomain);
     }
 

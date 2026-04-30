@@ -40,6 +40,8 @@ class CreateShipmentServiceTest {
                 .recipientAddress("Cra 2")
                 .recipientCity("Bogota")
                 .weightKg(new BigDecimal("2.5"))
+                .createdBy("SYSTEM")
+                .createdByRole("SYSTEM")
                 .build();
     }
 

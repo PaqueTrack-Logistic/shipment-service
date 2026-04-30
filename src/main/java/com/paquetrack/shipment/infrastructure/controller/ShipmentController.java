@@ -2,10 +2,10 @@ package com.paquetrack.shipment.infrastructure.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.paquetrack.shipment.domain.exception.InvalidSearchParameterException;
 import com.paquetrack.shipment.domain.exception.ShipmentNotFoundException;
-import com.paquetrack.shipment.domain.model.AuthenticatedUser;
 import com.paquetrack.shipment.domain.model.Shipment;
 import com.paquetrack.shipment.domain.port.in.CreateShipmentUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentByTrackingUseCase;
@@ -34,9 +33,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/shipments")
 @RequiredArgsConstructor
 @Tag(name = "Shipments", description = "Operaciones para crear y consultar envios")
-@SecurityRequirement(name = "BearerAuth")
 public class ShipmentController {
 
         private final CreateShipmentUseCase createShipmentUseCase;
@@ -56,52 +54,46 @@ public class ShipmentController {
         private final GetShipmentsByFilterUseCase getShipmentsByFilterUseCase;
 
         @PostMapping
-        @Operation(summary = "Crear envio", description = "Registra un nuevo envio y genera trackingId. Requiere roles: ADMIN u OPERADOR")
+        @Operation(summary = "Crear envio", description = "Registra un nuevo envio y genera trackingId.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "201", description = "Envio creado", content = @Content(schema = @Schema(implementation = ShipmentResponseDTO.class))),
-                        @ApiResponse(responseCode = "400", description = "Datos invalidos"),
-                        @ApiResponse(responseCode = "401", description = "No autenticado"),
-                        @ApiResponse(responseCode = "403", description = "No autorizado - Rol incorrecto")
+                        @ApiResponse(responseCode = "400", description = "Datos invalidos")
         })
-        public ResponseEntity<ShipmentResponseDTO> createShipment(
-                        @Valid @RequestBody ShipmentRequestDTO requestDTO,
-                        @AuthenticationPrincipal AuthenticatedUser usuarioAutenticado) {
 
-                log.info("Creando envío para remitente: {} por usuario: {} con rol: {}",
-                                requestDTO.getSenderName(),
-                                usuarioAutenticado.getUsername(),
-                                usuarioAutenticado.getRol());
+        @NonNull
+        public ResponseEntity<ShipmentResponseDTO> createShipment(
+                        @Valid @RequestBody ShipmentRequestDTO requestDTO) {
+
+                log.info("Creando envío para remitente: {}", requestDTO.getSenderName());
 
                 // Convertir DTO a dominio (Shipment sin datos de auditoría aún)
                 Shipment shipment = shipmentMapper.toDomain(requestDTO);
 
                 // Usar el método withCreator para asignar el usuario y rol
-                Shipment shipmentWithCreator = shipment.withCreator(
-                                usuarioAutenticado.getUsername(),
-                                usuarioAutenticado.getRol());
+                Shipment shipmentWithCreator = Objects.requireNonNull(
+                                shipment.withCreator("SYSTEM", "SYSTEM"));
 
                 Shipment created = createShipmentUseCase.createShipment(shipmentWithCreator);
 
                 log.info("Envío creado con trackingId: {} por {}", created.getTrackingId(), created.getCreatedBy());
 
+                URI location = URI.create("/api/shipments/" + created.getId());
+
                 return ResponseEntity
-                                .created(URI.create("/api/shipments/" + created.getId()))
+                                .created(Objects.requireNonNull(location))
                                 .body(shipmentMapper.toResponseDTO(created));
         }
 
         @GetMapping("/{id}")
-        @Operation(summary = "Consultar envio por id", description = "Requiere autenticación")
+        @Operation(summary = "Consultar envio por id")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Envio encontrado", content = @Content(schema = @Schema(implementation = ShipmentResponseDTO.class))),
-                        @ApiResponse(responseCode = "404", description = "Envio no encontrado"),
-                        @ApiResponse(responseCode = "401", description = "No autenticado")
+                        @ApiResponse(responseCode = "404", description = "Envio no encontrado")
         })
         public ResponseEntity<ShipmentResponseDTO> getShipment(
-                        @Parameter(description = "ID unico del envio", example = "4ff2a911-5a9e-4fd9-8f84-d9f6f020f66f") @PathVariable String id,
-                        @AuthenticationPrincipal AuthenticatedUser usuarioAutenticado) {
+                        @Parameter(description = "ID unico del envio", example = "4ff2a911-5a9e-4fd9-8f84-d9f6f020f66f") @PathVariable String id) {
 
-                log.info("Usuario {} consultando envío por id: {}",
-                                usuarioAutenticado != null ? usuarioAutenticado.getUsername() : "anónimo", id);
+                log.info("Consultando envío por id: {}", id);
 
                 return getShipmentUseCase.getShipment(id)
                                 .map(shipmentMapper::toResponseDTO)
@@ -110,18 +102,15 @@ public class ShipmentController {
         }
 
         @GetMapping("/tracking/{trackingId}")
-        @Operation(summary = "Consultar envio por trackingId", description = "Requiere autenticación")
+        @Operation(summary = "Consultar envio por trackingId")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Envio encontrado", content = @Content(schema = @Schema(implementation = ShipmentResponseDTO.class))),
-                        @ApiResponse(responseCode = "404", description = "Envio no encontrado"),
-                        @ApiResponse(responseCode = "401", description = "No autenticado")
+                        @ApiResponse(responseCode = "404", description = "Envio no encontrado")
         })
         public ResponseEntity<ShipmentResponseDTO> getShipmentByTrackingId(
-                        @Parameter(description = "TrackingId del envio", example = "PQ-20220406-ABC123") @PathVariable String trackingId,
-                        @AuthenticationPrincipal AuthenticatedUser usuarioAutenticado) {
+                        @Parameter(description = "TrackingId del envio", example = "PQ-20220406-ABC123") @PathVariable String trackingId) {
 
-                log.info("Usuario {} consultando envío por trackingId: {}",
-                                usuarioAutenticado != null ? usuarioAutenticado.getUsername() : "anónimo", trackingId);
+                log.info("Consultando envío por trackingId: {}", trackingId);
 
                 return getShipmentByTrackingUseCase.getShipmentByTrackingId(trackingId)
                                 .map(shipmentMapper::toResponseDTO)
@@ -133,15 +122,12 @@ public class ShipmentController {
         @Operation(summary = "Historial de eventos del envío", description = "Retorna todos los eventos de tracking recibidos para un envío")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Historial encontrado"),
-                        @ApiResponse(responseCode = "404", description = "Envío no encontrado"),
-                        @ApiResponse(responseCode = "401", description = "No autenticado")
+                        @ApiResponse(responseCode = "404", description = "Envío no encontrado")
         })
         public ResponseEntity<List<ShipmentEventHistoryResponseDTO>> getShipmentHistory(
-                        @Parameter(description = "ID del envío", required = true) @PathVariable String id,
-                        @AuthenticationPrincipal AuthenticatedUser usuarioAutenticado) {
+                        @Parameter(description = "ID del envío", required = true) @PathVariable String id) {
 
-                log.info("Usuario {} consultando historial del envío: {}",
-                                usuarioAutenticado != null ? usuarioAutenticado.getUsername() : "anónimo", id);
+                log.info("Consultando historial del envío: {}", id);
 
                 // Verificar que el envío existe
                 getShipmentUseCase.getShipment(id)
@@ -156,16 +142,13 @@ public class ShipmentController {
         @Operation(summary = "Buscar envíos por remitente o destinatario", description = "Búsqueda parcial. Ingrese solo un parámetro a la vez.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Lista de envíos encontrados"),
-                        @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
-                        @ApiResponse(responseCode = "401", description = "No autenticado")
+                        @ApiResponse(responseCode = "400", description = "Parámetros inválidos")
         })
         public ResponseEntity<List<ShipmentResponseDTO>> searchShipments(
                         @Parameter(description = "Nombre del remitente ") @RequestParam(required = false) String senderName,
-                        @Parameter(description = "Nombre del destinatario ") @RequestParam(required = false) String recipientName,
-                        @AuthenticationPrincipal AuthenticatedUser usuarioAutenticado) {
+                        @Parameter(description = "Nombre del destinatario ") @RequestParam(required = false) String recipientName) {
 
-                log.info("Usuario {} buscando envíos — senderName: {} | recipientName: {}",
-                                usuarioAutenticado != null ? usuarioAutenticado.getUsername() : "anónimo",
+                log.info("Buscando envíos — senderName: {} | recipientName: {}",
                                 senderName, recipientName);
 
                 // Ambos parámetros presentes - 400

@@ -22,7 +22,7 @@ Feature: Shipment Management API
 
   Scenario: CP-02-01 - Tracking ID is generated automatically
     Given path '/api/shipments'
-    And request { senderName: 'Test', senderCity: 'City', recipientName: 'Test2', recipientCity: 'City2', weightKg: 1.0 }
+    And request { senderName: 'Test', senderAddress: 'Calle 1', senderCity: 'City', recipientName: 'Test2', recipientAddress: 'Cra 2', recipientCity: 'City2', weightKg: 1.0 }
     When method POST
     Then status 201
     And match response.trackingId == '#notnull'
@@ -31,7 +31,7 @@ Feature: Shipment Management API
   Scenario: CP-03-01 - Get existing shipment by ID
     # First create
     Given path '/api/shipments'
-    And request { senderName: 'Test', senderCity: 'City', recipientName: 'Test2', recipientCity: 'City2', weightKg: 1.0 }
+    And request { senderName: 'Test', senderAddress: 'Calle 1', senderCity: 'City', recipientName: 'Test2', recipientAddress: 'Cra 2', recipientCity: 'City2', weightKg: 1.0 }
     When method POST
     Then status 201
     * def shipmentId = response.id
