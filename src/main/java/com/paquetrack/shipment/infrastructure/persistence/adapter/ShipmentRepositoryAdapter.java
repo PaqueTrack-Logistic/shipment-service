@@ -2,7 +2,6 @@ package com.paquetrack.shipment.infrastructure.persistence.adapter;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -56,7 +55,7 @@ public class ShipmentRepositoryAdapter implements ShipmentRepositoryPort {
                 .findBySenderNameContainingIgnoreCase(senderName)
                 .stream()
                 .map(shipmentMapper::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -65,6 +64,6 @@ public class ShipmentRepositoryAdapter implements ShipmentRepositoryPort {
                 .findByRecipientNameContainingIgnoreCase(recipientName)
                 .stream()
                 .map(shipmentMapper::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

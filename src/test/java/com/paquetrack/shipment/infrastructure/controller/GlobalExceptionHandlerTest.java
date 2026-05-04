@@ -54,7 +54,7 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleValidationErrors_returns400WithDetails() throws Exception {
         mockMvc.perform(post("/fake/validation")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
                         .content("{\"name\": \"\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
