@@ -13,6 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -134,6 +136,72 @@ class ShipmentRepositoryAdapterTest {
 
         Optional<Shipment> result = adapter.findByTrackingId("PQ-00000000-NOEXIST");
 
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("findBySenderNameContaining returns mapped domain list")
+    void findBySenderNameContainingReturnsMappedList() {
+        // Arrange
+        ShipmentEntity entity = buildEntity();
+        Shipment domain = buildDomainShipment();
+
+        when(jpaShipmentRepository.findBySenderNameContainingIgnoreCase("Juan")).thenReturn(List.of(entity));
+        when(shipmentMapper.toDomain(entity)).thenReturn(domain);
+
+        // Act
+        List<Shipment> result = adapter.findBySenderNameContaining("Juan");
+
+        // Assert
+        assertThat(result).hasSize(1).contains(domain);
+        verify(jpaShipmentRepository).findBySenderNameContainingIgnoreCase("Juan");
+        verify(shipmentMapper).toDomain(entity);
+    }
+
+    @Test
+    @DisplayName("findBySenderNameContaining returns empty list when no matches")
+    void findBySenderNameContainingReturnsEmptyList() {
+        // Arrange
+        when(jpaShipmentRepository.findBySenderNameContainingIgnoreCase("Desconocido"))
+                .thenReturn(Collections.emptyList());
+
+        // Act
+        List<Shipment> result = adapter.findBySenderNameContaining("Desconocido");
+
+        // Assert
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("findByRecipientNameContaining returns mapped domain list")
+    void findByRecipientNameContainingReturnsMappedList() {
+        // Arrange
+        ShipmentEntity entity = buildEntity();
+        Shipment domain = buildDomainShipment();
+
+        when(jpaShipmentRepository.findByRecipientNameContainingIgnoreCase("Maria")).thenReturn(List.of(entity));
+        when(shipmentMapper.toDomain(entity)).thenReturn(domain);
+
+        // Act
+        List<Shipment> result = adapter.findByRecipientNameContaining("Maria");
+
+        // Assert
+        assertThat(result).hasSize(1).contains(domain);
+        verify(jpaShipmentRepository).findByRecipientNameContainingIgnoreCase("Maria");
+        verify(shipmentMapper).toDomain(entity);
+    }
+
+    @Test
+    @DisplayName("findByRecipientNameContaining returns empty list when no matches")
+    void findByRecipientNameContainingReturnsEmptyList() {
+        // Arrange
+        when(jpaShipmentRepository.findByRecipientNameContainingIgnoreCase("Desconocido"))
+                .thenReturn(Collections.emptyList());
+
+        // Act
+        List<Shipment> result = adapter.findByRecipientNameContaining("Desconocido");
+
+        // Assert
         assertThat(result).isEmpty();
     }
 }

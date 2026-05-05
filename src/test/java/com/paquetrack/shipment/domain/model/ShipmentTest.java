@@ -88,4 +88,89 @@ class ShipmentTest {
         // Original unchanged
         assertThat(shipment.getStatus()).isEqualTo("CREATED");
     }
+    // ════════════════════════════════════════════════════════════════════════════
+// wasCreatedBy
+// ════════════════════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("wasCreatedBy returns true when username matches")
+    void wasCreatedByReturnsTrueWhenUsernameMatches() {
+        // Arrange
+        Shipment shipment = Shipment.builder().createdBy("SYSTEM").build();
+
+        // Act
+        boolean result = shipment.wasCreatedBy("SYSTEM");
+
+        // Assert
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DisplayName("wasCreatedBy returns false when username does not match")
+    void wasCreatedByReturnsFalseWhenUsernameDiffers() {
+        // Arrange
+        Shipment shipment = Shipment.builder().createdBy("SYSTEM").build();
+
+        // Act
+        boolean result = shipment.wasCreatedBy("OTHER_USER");
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("wasCreatedBy returns false when createdBy is null")
+    void wasCreatedByReturnsFalseWhenCreatedByIsNull() {
+        // Arrange
+        Shipment shipment = Shipment.builder().build();
+
+        // Act
+        boolean result = shipment.wasCreatedBy("SYSTEM");
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+// ════════════════════════════════════════════════════════════════════════════
+// wasCreatedByRole
+// ════════════════════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("wasCreatedByRole returns true when role matches")
+    void wasCreatedByRoleReturnsTrueWhenRoleMatches() {
+        // Arrange
+        Shipment shipment = Shipment.builder().createdByRole("ADMIN").build();
+
+        // Act
+        boolean result = shipment.wasCreatedByRole("ADMIN");
+
+        // Assert
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DisplayName("wasCreatedByRole returns false when role does not match")
+    void wasCreatedByRoleReturnsFalseWhenRoleDiffers() {
+        // Arrange
+        Shipment shipment = Shipment.builder().createdByRole("ADMIN").build();
+
+        // Act
+        boolean result = shipment.wasCreatedByRole("USER");
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("wasCreatedByRole returns false when createdByRole is null")
+    void wasCreatedByRoleReturnsFalseWhenCreatedByRoleIsNull() {
+        // Arrange
+        Shipment shipment = Shipment.builder().build();
+
+        // Act
+        boolean result = shipment.wasCreatedByRole("ADMIN");
+
+        // Assert
+        assertThat(result).isFalse();
+    }
 }

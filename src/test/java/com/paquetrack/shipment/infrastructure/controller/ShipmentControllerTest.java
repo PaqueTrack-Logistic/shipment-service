@@ -4,6 +4,9 @@ import com.paquetrack.shipment.domain.model.Shipment;
 import com.paquetrack.shipment.domain.port.in.CreateShipmentUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentByTrackingUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentUseCase;
+import com.paquetrack.shipment.domain.port.in.GetShipmentsByFilterUseCase;
+import com.paquetrack.shipment.domain.port.out.ShipmentEventHistoryPort;
+import com.paquetrack.shipment.infrastructure.dto.ShipmentEventHistoryResponseDTO;
 import com.paquetrack.shipment.infrastructure.dto.ShipmentRequestDTO;
 import com.paquetrack.shipment.infrastructure.dto.ShipmentResponseDTO;
 import com.paquetrack.shipment.infrastructure.persistence.mapper.ShipmentMapper;
@@ -20,8 +23,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -46,6 +52,12 @@ class ShipmentControllerTest {
 
     @Mock
     private ShipmentMapper shipmentMapper;
+
+    @Mock
+    private GetShipmentsByFilterUseCase getShipmentsByFilterUseCase;
+
+    @Mock
+    private ShipmentEventHistoryPort shipmentEventHistoryPort;
 
     @InjectMocks
     private ShipmentController shipmentController;
@@ -236,5 +248,134 @@ class ShipmentControllerTest {
 
         mockMvc.perform(get("/api/shipments/tracking/PQ-00000000-NOEXIST"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("CP-05-01: GET /api/shipments/{id}/history returns 200 with event list")
+    void getShipmentHistoryReturns200WithEvents() throws Exception {
+        // Arrange
+        Shipment shipment = buildCreatedShipment();
+        ShipmentEventHistoryResponseDTO event = ShipmentEventHistoryResponseDTO.builder()
+                .id("evt-001")
+                .shipmentId("abc-123")
+                .previousStatus("CREATED")
+                .newStatus("DISPATCHED")
+                .occurredAt("Medellin HUB")
+                .recordedAt(LocalDateTime.of(2026, 4, 7, 10, 30, 0))
+                .build();
+
+        when(getShipmentUseCase.getShipment("abc-123")).thenReturn(Optional.of(shipment));
+        when(shipmentEventHistoryPort.findByShipmentId("abc-123")).thenReturn(List.of(event));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/shipments/abc-123/history"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].shipmentId").value("abc-123"))
+                .andExpect(jsonPath("$[0].previousStatus").value("CREATED"))
+                .andExpect(jsonPath("$[0].newStatus").value("DISPATCHED"));
+    }
+
+    @Test
+    @DisplayName("CP-05-02: GET /api/shipments/{id}/history returns 200 with empty list")
+    void getShipmentHistoryReturns200WithEmptyList() throws Exception {
+        // Arrange
+        Shipment shipment = buildCreatedShipment();
+
+        when(getShipmentUseCase.getShipment("abc-123")).thenReturn(Optional.of(shipment));
+        when(shipmentEventHistoryPort.findByShipmentId("abc-123")).thenReturn(Collections.emptyList());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/shipments/abc-123/history"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    @DisplayName("CP-05-03: GET /api/shipments/{id}/history returns 404 when shipment not found")
+    void getShipmentHistoryReturns404WhenShipmentNotFound() throws Exception {
+        // Arrange
+        when(getShipmentUseCase.getShipment("non-existent-id")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/shipments/non-existent-id/history"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("CP-06-01: GET /api/shipments/search by senderName returns 200 with results")
+    void searchShipmentsBySenderNameReturns200() throws Exception {
+        // Arrange
+        Shipment shipment = buildCreatedShipment();
+        ShipmentResponseDTO responseDTO = ShipmentResponseDTO.builder()
+                .id(shipment.getId())
+                .senderName(shipment.getSenderName())
+                .build();
+
+        when(getShipmentsByFilterUseCase.getBySenderName("Juan Perez")).thenReturn(List.of(shipment));
+        when(shipmentMapper.toResponseDTO(shipment)).thenReturn(responseDTO);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/shipments/search")
+                        .param("senderName", "Juan Perez"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].senderName").value("Juan Perez"));
+    }
+
+    @Test
+    @DisplayName("CP-06-02: GET /api/shipments/search by recipientName returns 200 with results")
+    void searchShipmentsByRecipientNameReturns200() throws Exception {
+        // Arrange
+        Shipment shipment = buildCreatedShipment();
+        ShipmentResponseDTO responseDTO = ShipmentResponseDTO.builder()
+                .id(shipment.getId())
+                .recipientName(shipment.getRecipientName())
+                .build();
+
+        when(getShipmentsByFilterUseCase.getByRecipientName("Maria Lopez")).thenReturn(List.of(shipment));
+        when(shipmentMapper.toResponseDTO(shipment)).thenReturn(responseDTO);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/shipments/search")
+                        .param("recipientName", "Maria Lopez"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].recipientName").value("Maria Lopez"));
+    }
+
+    @Test
+    @DisplayName("CP-06-03: GET /api/shipments/search with both params returns 400")
+    void searchShipmentsWithBothParamsReturns400() throws Exception {
+        // Arrange — no mocks needed, validation happens before use case calls
+
+        // Act & Assert
+        mockMvc.perform(get("/api/shipments/search")
+                        .param("senderName", "Juan Perez")
+                        .param("recipientName", "Maria Lopez"))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    @DisplayName("CP-06-04: GET /api/shipments/search with no params returns 400")
+    void searchShipmentsWithNoParamsReturns400() throws Exception {
+        // Arrange — no mocks needed, validation happens before use case calls
+
+        // Act & Assert
+        mockMvc.perform(get("/api/shipments/search"))
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    @DisplayName("CP-06-05: GET /api/shipments/search by senderName returns 200 with empty list")
+    void searchShipmentsBySenderNameReturnsEmptyList() throws Exception {
+        // Arrange
+        when(getShipmentsByFilterUseCase.getBySenderName("Desconocido")).thenReturn(Collections.emptyList());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/shipments/search")
+                        .param("senderName", "Desconocido"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 }
