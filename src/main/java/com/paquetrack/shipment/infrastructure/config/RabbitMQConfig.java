@@ -91,15 +91,14 @@ public class RabbitMQConfig {
     // ─── Reintentos: 3 intentos con espera entre ellos ───────────────
     @Bean
     public RetryOperationsInterceptor retryInterceptor() {
+        ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+        backOffPolicy.setInitialInterval(2000);
+        backOffPolicy.setMultiplier(2.0);
+        backOffPolicy.setMaxInterval(10000);
+
         return RetryInterceptorBuilder.stateless()
                 .retryPolicy(new SimpleRetryPolicy(3))
-                .backOffPolicy(new ExponentialBackOffPolicy() {
-                    {
-                        setInitialInterval(2000);
-                        setMultiplier(2.0);
-                        setMaxInterval(10000);
-                    }
-                })
+                .backOffPolicy(backOffPolicy)
                 .recoverer(new RejectAndDontRequeueRecoverer())
                 .build();
     }

@@ -3,7 +3,6 @@ package com.paquetrack.shipment.infrastructure.persistence.adapter;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -41,7 +40,7 @@ public class ShipmentEventHistoryAdapter implements ShipmentEventHistoryPort {
                 return repository.findByShipmentIdOrderByRecordedAtDesc(shipmentId)
                                 .stream()
                                 .map(this::toDTO)
-                                .collect(Collectors.toList());
+                                .toList();
         }
 
         private ShipmentEventHistoryResponseDTO toDTO(ShipmentEventHistoryEntity entity) {
