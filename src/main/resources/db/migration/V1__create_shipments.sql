@@ -40,7 +40,3 @@ COMMENT ON COLUMN shipments.status IS 'Estado: CREATED, IN_TRANSIT, DELIVERED, C
 COMMENT ON COLUMN shipments.created_by IS 'Email del administrador que creó el envío';
 COMMENT ON COLUMN shipments.created_by_role IS 'Rol del administrador que creó el envío';
 
-/*Columnas para auditoría*/
-ALTER TABLE shipment
-ADD COLUMN created_by VARCHAR(255),
-ADD COLUMN created_by_role VARCHAR(100);
