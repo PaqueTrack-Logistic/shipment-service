@@ -1,5 +1,6 @@
 package com.paquetrack.shipment.infrastructure.persistence.adapter;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,6 +63,29 @@ public class ShipmentRepositoryAdapter implements ShipmentRepositoryPort {
     public List<Shipment> findByRecipientNameContaining(String recipientName) {
         return jpaShipmentRepository
                 .findByRecipientNameContainingIgnoreCase(recipientName)
+                .stream()
+                .map(shipmentMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Shipment> findByStatusAndDateRange(String status, LocalDate from, LocalDate to) {
+        return jpaShipmentRepository
+                .findByStatusAndDateRange(
+                        status,
+                        from.atStartOfDay(),
+                        to.atTime(23, 59, 59))
+                .stream()
+                .map(shipmentMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Shipment> findByDateRange(LocalDate from, LocalDate to) {
+        return jpaShipmentRepository
+                .findByDateRange(
+                        from.atStartOfDay(),
+                        to.atTime(23, 59, 59))
                 .stream()
                 .map(shipmentMapper::toDomain)
                 .toList();

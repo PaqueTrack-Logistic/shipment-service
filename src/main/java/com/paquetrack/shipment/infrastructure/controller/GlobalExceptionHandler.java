@@ -7,17 +7,17 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.paquetrack.shipment.domain.exception.InvalidSearchParameterException;
 import com.paquetrack.shipment.domain.exception.ShipmentNotFoundException;
-
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -139,6 +139,38 @@ public class GlobalExceptionHandler {
         response.put(ERROR, errorMessage);
         response.put(PATH, request.getRequestURI());
         return response;
+    }
+
+    @ExceptionHandler(InvalidSearchParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidSearchParameter(
+            InvalidSearchParameterException ex,
+            HttpServletRequest request) {
+
+        log.warn("Parámetro inválido en {}: {}", request.getRequestURI(), ex.getMessage());
+
+        Map<String, Object> response = buildResponse(
+                HttpStatus.BAD_REQUEST, "Parámetro inválido", request);
+        response.put(MESSAGE, ex.getMessage());
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+
+        String message = String.format(
+                "El parámetro '%s' tiene un formato inválido. Se esperaba formato: yyyy-MM-dd",
+                ex.getName());
+
+        log.warn("Tipo de dato inválido en {}: {}", request.getRequestURI(), message);
+
+        Map<String, Object> response = buildResponse(
+                HttpStatus.BAD_REQUEST, "Formato de parámetro inválido", request);
+        response.put(MESSAGE, message);
+
+        return ResponseEntity.badRequest().body(response);
     }
 
 }

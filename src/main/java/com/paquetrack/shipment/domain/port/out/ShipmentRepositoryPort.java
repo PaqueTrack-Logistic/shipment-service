@@ -1,5 +1,6 @@
 package com.paquetrack.shipment.domain.port.out;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,8 @@ public interface ShipmentRepositoryPort {
     List<Shipment> findBySenderNameContaining(String senderName);
     
     List<Shipment> findByRecipientNameContaining(String recipientName);
+
+    List<Shipment> findByStatusAndDateRange(String status, LocalDate from, LocalDate to);
+    
+    List<Shipment> findByDateRange(LocalDate from, LocalDate to);
 }

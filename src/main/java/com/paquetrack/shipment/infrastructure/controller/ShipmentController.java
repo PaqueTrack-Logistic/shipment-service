@@ -1,9 +1,11 @@
 package com.paquetrack.shipment.infrastructure.controller;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,10 +20,12 @@ import com.paquetrack.shipment.domain.exception.ShipmentNotFoundException;
 import com.paquetrack.shipment.domain.model.Shipment;
 import com.paquetrack.shipment.domain.port.in.CreateShipmentUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentByTrackingUseCase;
+import com.paquetrack.shipment.domain.port.in.GetShipmentReportUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentsByFilterUseCase;
 import com.paquetrack.shipment.domain.port.out.ShipmentEventHistoryPort;
 import com.paquetrack.shipment.infrastructure.dto.ShipmentEventHistoryResponseDTO;
+import com.paquetrack.shipment.infrastructure.dto.ShipmentReportResponseDTO;
 import com.paquetrack.shipment.infrastructure.dto.ShipmentRequestDTO;
 import com.paquetrack.shipment.infrastructure.dto.ShipmentResponseDTO;
 import com.paquetrack.shipment.infrastructure.persistence.mapper.ShipmentMapper;
@@ -50,6 +54,7 @@ public class ShipmentController {
         private final ShipmentMapper shipmentMapper;
         private final ShipmentEventHistoryPort shipmentEventHistoryPort;
         private final GetShipmentsByFilterUseCase getShipmentsByFilterUseCase;
+        private final GetShipmentReportUseCase getShipmentReportUseCase;
 
         @PostMapping
         @Operation(summary = "Crear envio", description = "Registra un nuevo envio y genera trackingId.")
@@ -172,4 +177,25 @@ public class ShipmentController {
                 log.info("Búsqueda completada — {} resultados encontrados", results.size());
                 return ResponseEntity.ok(results);
         }
+
+        @GetMapping("/report")
+        @Operation(summary = "Reporte de envíos por rango de fechas", description = "Requiere ROLE_ADMIN o ROLE_LOGISTICS. Formato de fechas: yyyy-MM-dd")
+        @ApiResponse(responseCode = "200", description = "Reporte generado")
+        @ApiResponse(responseCode = "400", description = "Fechas inválidas")
+        @ApiResponse(responseCode = "401", description = "No autenticado")
+        @ApiResponse(responseCode = "403", description = "Rol insuficiente")
+        public ResponseEntity<ShipmentReportResponseDTO> getReport(
+                        @Parameter(description = "Fecha inicio. Formato: yyyy-MM-dd", example = "2026-04-01") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                        @Parameter(description = "Fecha fin. Formato: yyyy-MM-dd", example = "2026-04-30") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+
+                log.info("Generando reporte de envíos del {} al {}", from, to);
+
+                if (from.isAfter(to)) {
+                        throw new InvalidSearchParameterException(
+                                        "La fecha inicio no puede ser mayor a la fecha fin");
+                }
+
+                return ResponseEntity.ok(getShipmentReportUseCase.getReport(from, to));
+        }
+
 }

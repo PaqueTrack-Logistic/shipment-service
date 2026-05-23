@@ -5,17 +5,20 @@ import org.springframework.context.annotation.Configuration;
 
 import com.paquetrack.shipment.application.service.CreateShipmentService;
 import com.paquetrack.shipment.application.service.GetShipmentByTrackingService;
+import com.paquetrack.shipment.application.service.GetShipmentReportService;
 import com.paquetrack.shipment.application.service.GetShipmentService;
 import com.paquetrack.shipment.application.service.GetShipmentsByFilterService;
 import com.paquetrack.shipment.application.service.UpdateShipmentStatusService;
 import com.paquetrack.shipment.domain.port.in.CreateShipmentUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentByTrackingUseCase;
+import com.paquetrack.shipment.domain.port.in.GetShipmentReportUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentUseCase;
 import com.paquetrack.shipment.domain.port.in.GetShipmentsByFilterUseCase;
 import com.paquetrack.shipment.domain.port.in.UpdateShipmentStatusUseCase;
 import com.paquetrack.shipment.domain.port.out.ShipmentEventHistoryPort;
 import com.paquetrack.shipment.domain.port.out.ShipmentEventPublisherPort;
 import com.paquetrack.shipment.domain.port.out.ShipmentRepositoryPort;
+import com.paquetrack.shipment.infrastructure.persistence.mapper.ShipmentMapper;
 
 @Configuration
 public class BeanConfig {
@@ -50,5 +53,12 @@ public class BeanConfig {
     public GetShipmentsByFilterUseCase getShipmentsByFilterUseCase(
             ShipmentRepositoryPort repo) {
         return new GetShipmentsByFilterService(repo);
+    }
+
+    @Bean
+    public GetShipmentReportUseCase getShipmentReportUseCase(
+            ShipmentRepositoryPort repo,
+            ShipmentMapper shipmentMapper) {
+        return new GetShipmentReportService(repo, shipmentMapper);
     }
 }
