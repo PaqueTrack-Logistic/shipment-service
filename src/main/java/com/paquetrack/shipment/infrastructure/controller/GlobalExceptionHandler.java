@@ -97,11 +97,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGenericError(
             Exception ex,
             HttpServletRequest request) {
+        String uri = request != null ? request.getRequestURI() : "unknown";
+        log.error("Error inesperado en {}: {}", uri, ex.getMessage(), ex);
 
-        log.error("Error inesperado en {}: {}", request.getRequestURI(), ex.getMessage(), ex);
-
+        Map<String, Object> response = new HashMap<>();
+        response.put(TIMESTAMP, LocalDateTime.now().toString());
+        response.put(STATUS, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        response.put(ERROR, "Error interno del servidor");
+        if (request != null) {
+            response.put(PATH, uri);
+        }
         return ResponseEntity.internalServerError()
-                .body(buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor", request));
+                .body(response);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
