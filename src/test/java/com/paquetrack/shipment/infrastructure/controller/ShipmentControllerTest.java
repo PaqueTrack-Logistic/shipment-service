@@ -353,7 +353,7 @@ class ShipmentControllerTest {
         mockMvc.perform(get("/api/shipments/search")
                         .param("senderName", "Juan Perez")
                         .param("recipientName", "Maria Lopez"))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -363,7 +363,7 @@ class ShipmentControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/shipments/search"))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
