@@ -101,4 +101,28 @@ class GlobalExceptionHandlerBranchesTest {
 		assertThat(response.getStatusCode().value()).isEqualTo(400);
 		assertThat(String.valueOf(response.getBody().get("message"))).contains("BigDecimal");
 	}
+
+	@Test
+	void handleInvalidFormat_withFieldPath_usesFieldName() {
+		// path no vacío -> rama getFieldName() en lugar de "desconocido"
+		InvalidFormatException ife = InvalidFormatException.from(null, "valor inválido", "abc", BigDecimal.class);
+		ife.prependPath(new Object(), "weightKg");
+		HttpMessageNotReadableException ex =
+				new HttpMessageNotReadableException("msg", ife, mock(HttpInputMessage.class));
+
+		ResponseEntity<Map<String, Object>> response = handler.handleInvalidFormat(ex, request);
+
+		assertThat(response.getStatusCode().value()).isEqualTo(400);
+		assertThat(String.valueOf(response.getBody().get("message"))).contains("weightKg");
+	}
+
+	@Test
+	void handleGenericError_withNullRequest_returns500WithoutPath() {
+		// request == null -> ramas false de "request != null"
+		ResponseEntity<Map<String, Object>> response =
+				handler.handleGenericError(new RuntimeException("boom"), null);
+
+		assertThat(response.getStatusCode().value()).isEqualTo(500);
+		assertThat(response.getBody()).doesNotContainKey("path");
+	}
 }
