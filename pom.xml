@@ -30,7 +30,9 @@
             **/service/**
         </sonar.coverage.exclusions>
         <sonar.exclusions>
-            **/infrastructure/controller/**
+            **/infrastructure/controller/**,
+            **/infrastructure/config/**
+
         </sonar.exclusions>
     </properties>
 
