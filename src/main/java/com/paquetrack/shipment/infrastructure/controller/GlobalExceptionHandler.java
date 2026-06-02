@@ -18,6 +18,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.paquetrack.shipment.domain.exception.InvalidSearchParameterException;
 import com.paquetrack.shipment.domain.exception.ShipmentNotFoundException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -177,6 +178,24 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST, "Formato de parámetro inválido", request);
         response.put(MESSAGE, message);
 
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    // 400 — parámetro requerido faltante (ej: from o to en el reporte)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingParameter(
+            MissingServletRequestParameterException ex,
+            HttpServletRequest request) {
+    
+        String message = String.format(
+                "El parámetro '%s' es obligatorio", ex.getParameterName());
+    
+        log.warn("Parámetro faltante en {}: {}", request.getRequestURI(), message);
+    
+        Map<String, Object> response = buildResponse(
+                HttpStatus.BAD_REQUEST, "Parámetro faltante", request);
+        response.put(MESSAGE, message);
+    
         return ResponseEntity.badRequest().body(response);
     }
 
