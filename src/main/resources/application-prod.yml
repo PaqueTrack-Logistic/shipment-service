@@ -43,3 +43,18 @@ logging:
     "[com.paquetrack]": INFO
     "[org.hibernate.SQL]": WARN
     "[org.springframework.amqp]": INFO
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: shipment-service
