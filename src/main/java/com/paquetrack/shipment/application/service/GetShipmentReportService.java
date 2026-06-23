@@ -39,7 +39,7 @@ public class GetShipmentReportService implements GetShipmentReportUseCase {
         List<ShipmentResponseDTO> exception = toDTO(
                 repository.findByStatusAndDateRange("EXCEPTION", from, to));
 
-        long total = created.size() + inTransit.size() +
+        long total = (long) created.size() + inTransit.size() +
                      outForDelivery.size() + delivered.size() + exception.size();
 
         log.info("Reporte generado del {} al {} — total: {}", from, to, total);
